@@ -10,7 +10,8 @@ DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
     libraries={
         "pandas": "2.1.2",  
         "pyarrow": "13.0.0", 
-        "scikit-learn": "1.3.2"
+        "scikit-learn": "1.3.2",
+        "xgboost": '1.5.1'
     }
 )
 class TaxiFarePrediction(FlowSpec):
@@ -47,17 +48,15 @@ class TaxiFarePrediction(FlowSpec):
         # In practice, you want split time series data in more sophisticated ways and run backtests.
         self.X = self.df["trip_distance"].values.reshape(-1, 1)
         self.y = self.df["total_amount"].values
-        self.next(self.linear_model)
+        self.next(self.xgb_model)
 
     @step
-    def linear_model(self):
+    def xgb_model(self):
         "Fit a single variable, linear model to the data."
-        from sklearn.linear_model import LinearRegression
-
+        import xgboost as xgb
         # TODO: Play around with the model if you are feeling it.
-        self.model = LinearRegression(copy_X=False,
-                                        fit_intercept=False,
-                                        n_jobs=-1)
+        self.model = xgb.XGBRegressor(objective ='reg:linear', 
+                  n_estimators = 10, seed = 123) 
 
         self.next(self.validate)
 
